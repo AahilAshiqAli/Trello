@@ -1,0 +1,10 @@
+package.json → Defines the project, dependencies, scripts, and package manager settings.
+pnpm-lock.yaml → Tracks the exact dependency versions (for pnpm users).
+.gitignore → Specifies which files should be ignored by Git (like node_modules/).
+README.md → A markdown file describing the project.
+tsconfig.json → TypeScript configuration file.
+tsconfig.app.json, tsconfig.node.json → Additional TypeScript settings for different parts of the project.
+.editorconfig → Defines consistent coding styles across different editors.
+.eslintrc.cjs → ESLint configuration file for code quality checks.
+.prettierrc, .prettierignore → Configures Prettier for code formatting.
+.commitlintrc.json → Ensures consistent commit messages.

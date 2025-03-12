@@ -31,14 +31,14 @@ export default defineConfig(async ({ mode }) => {
   return {
     plugins: [
       tailwindcss(),
+      tsconfigPaths(),
+      svgr(svgrOptions),
+      TanStackRouterVite({ target: 'react', autoCodeSplitting: true }),
       react({
         babel: {
           plugins: [['babel-plugin-react-compiler', compilerConfig]],
         },
       }),
-      tsconfigPaths(),
-      svgr(svgrOptions),
-      TanStackRouterVite({ target: 'react', autoCodeSplitting: true }),
     ],
     build: { outDir: 'build' },
   };
