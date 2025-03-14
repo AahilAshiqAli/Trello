@@ -1,96 +1,33 @@
-# React + TypeScript + Tailwind Starter
+=======
 
-## Table of Contents
-- [About](#about)
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Scripts](#scripts)
-- [Linting and Formatting](#linting-and-formatting)
-- [Environment Variables](#typesafe-environment-variables)
-- [Contributing](#contributing)
-- [License](#license)
+# React + TypeScript + Vite
 
-## About
-This project is a great place to start your react + typescript project, it uses vite for the dev server and TailwindCSS for styling. This configuration was my go-to every time so instead of configuring it again and again I created this starter and thought to share it with the community as well 😄. Would love to have your feedback/comments/suggestions regarding this.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Features
-- **React and Vite:** Utilize the power of React for building user interfaces and Vite for a faster development experience.
-- **Typesafe Routing (feat. [Tanstack Router](https://github.com/TanStack/router)):** Utilize the power of Tanstack Router for building a type-safe routing system.
-- **TypeScript:** Enjoy the benefits of static typing with TypeScript support.
-- **Tailwind CSS:** Quickly style your components with the utility-first CSS framework.
-- **Prettier and ESLint:** Ensure consistent code style and formatting using ```eslint``` and ```prettier```.
-- **Typesafe Environment Variables:** Handling and validation of environment variables using Zod.
-- **Commitlint:** Enforce consistent commit messages.
+Currently, two official plugins are available:
 
-## Getting Started
-### Prerequisites
-You need to have [Node.js (>=20.x)](https://nodejs.org/), npm & [Git](https://git-scm.com/) installed on your machine to get started with this repository.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-### Installation
-#### Clone the repository:
-```bash
-# HTTPS
-git clone https://github.com/Muhammad-Hasham-Khalid/react-typescript-tailwind-starter.git
+## Expanding the ESLint configuration
 
-# or SSH
-git clone git@github.com:Muhammad-Hasham-Khalid/react-typescript-tailwind-starter.git
+If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
 
-# or GitHub CLI
-gh repo clone Muhammad-Hasham-Khalid/react-typescript-tailwind-starter
+- Configure the top-level `parserOptions` property like this:
+
+```js
+export default {
+  // other rules...
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    project: ['./tsconfig.json', './tsconfig.node.json'],
+    tsconfigRootDir: __dirname,
+  },
+};
 ```
 
-#### Change directory:
-```bash
-cd react-typescript-tailwind-starter
-```
-
-#### Install dependencies:
-```bash
-pnpm install
-```
-
-### Usage
-#### Create a .env.local file from .env.sample
-```bash
-cp .env.local .env.sample
-```
-
-#### Start the dev server
-```bash
-pnpm dev
-```
-Visit [http://localhost:5173](http://localhost:5173) in your browser to see the app.
-
-### Configuration
-- There is a default ```settings.json``` in the ```.vscode``` folder which you can change as per your requirements.
-- There is a default ```extensions.json``` in the ```.vscode``` folder with some recommended extensions which you can also change as per your requirements.
-
-### Scripts
-- ```dev```: Run the vite development server.
-- ```build```: Build the project for production.
-- ```start```: Start the project in production mode.
-- ```build:staging```: Build the project in staging mode (uses .env.staging for the environment).
-- ```start:staging```: Start the project in staging mode.
-- ```lint```: Run linting on your project (for more details see the [Linting and Formatting](#linting-and-formatting) section)
-- ```format```: Run prettier on your project (for more details see the [Linting and Formatting](#linting-and-formatting) section)
-
-### Linting and Formatting
-For linting this project uses [eslint](https://eslint.org/) and, for consistent formatting it uses [prettier](https://prettier.io/) both these tools are pretty much used as a standard in the javascript/typescript ecosystem. If you have some specific settings/configuration you can change/add them in their respective configuration files i.e.: ```.eslintrc.cjs``` and ```.prettierrc```
-
-### Typesafe Environment Variables
-To add any environment variables first go to ```src/env.ts``` and add them in the env zod object, for example:
-```typescript
-export const env = z.object({
-  ...
-  // client
-  VITE_YOUR_ENV_VAR: z.string(),
-});
-```
-Now, if your dev server was running it should probably crash as the environment file is now invalid as per this schema so add this variable to the relevant environment file, and voila you can now access that environment variable in your app as ```import.meta.env.VITE_YOUR_ENV_VAR```. (and you get autocomplete for it as well 😎)
-
-### Contributing
-Feel free to contribute to this project by opening pull requests or creating issues, would love to have some feedback and contributions from the community.
+- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
+- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
+- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+  > > > > > > > 181674d (feat: react starter with typescript, tailwind, vite)
