@@ -1,5 +1,6 @@
+import { useDeleteTask } from '@/mutations/useDeleteTask';
+import { useEditTask } from '@/mutations/useEditTask';
 import { useTaskStore } from '@/store/useTask';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 export function TaskCard({
@@ -12,17 +13,28 @@ export function TaskCard({
   column: 'todo' | 'doing' | 'done';
 }) {
   const { tasks, deleteTask, editTask } = useTaskStore();
-
-  // 📝 State for editing mode
   const [isEditing, setIsEditing] = useState(false);
   // 📝 Track edited text
   const [editedText, setEditedText] = useState(text);
+  const editMutation = useEditTask();
+  const deleteMutation = useDeleteTask();
+  const [showModal, setShowModal] = useState(false);
 
   const handleEditTask = () => {
     if (editedText.trim() !== '') {
-      const editedTask = editTask(column, id, editedText);
+      for (const col of ['todo', 'doing', 'done'] as const) {
+        if (tasks[col].some((task) => task.id === Number(id))) {
+          column = col;
+          break;
+        }
+      }
+      const editedTask = editTask(column, id, editedText, column);
       console.log('After edit:', tasks);
-      editMutation.mutate(editedTask);
+      if (typeof editedTask === 'object' && editedTask !== null) {
+        console.log('hello');
+        editMutation.mutate(editedTask);
+        console.log('errorended');
+      }
       setIsEditing(false);
     }
   };
@@ -33,35 +45,8 @@ export function TaskCard({
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    e.dataTransfer.setData('text/plain', JSON.stringify({ id, text, column }));
+    e.dataTransfer.setData('text/plain', JSON.stringify({ id, text }));
   };
-  const queryClient = useQueryClient();
-  const editMutation = useMutation({
-    mutationFn: async (task) => {
-      const response = await fetch('http://localhost:5000/api/tasks/', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task),
-      });
-      if (!response.ok) throw new Error('Failed to add task');
-      return response.json();
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] }); // Refetch tasks from API
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete task');
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] }); // Refetch tasks from API
-    },
-  });
 
   return (
     <div
@@ -109,11 +94,37 @@ export function TaskCard({
             <i className="fa fa-pencil w-5"></i>
           </button>
           <button
-            onClick={handleDeleteTask}
+            onClick={() => setShowModal(true)}
             className="ml-2 hidden rounded bg-red-500 p-1 text-white transition-all hover:bg-red-600 group-hover:block"
           >
             <i className="fa fa-times w-5"></i>
           </button>
+
+          {/* Delete Confirmation Modal */}
+          {showModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-gray-200/30">
+              <div className="rounded bg-white p-4 shadow-md">
+                <p className="mb-4">Are you sure you want to delete this task?</p>
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => {
+                      handleDeleteTask();
+                      setShowModal(false);
+                    }}
+                    className="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -20,7 +20,12 @@ interface TaskState {
   initializeTasks: (fetchedTasks: TaskType[]) => void;
   addTask: (column: 'todo' | 'doing' | 'done', text: string) => void;
   deleteTask: (column: 'todo' | 'doing' | 'done', id: number) => void;
-  editTask: (column: 'todo' | 'doing' | 'done', id: number, newText: string) => void;
+  editTask: (
+    oldColumn: 'todo' | 'doing' | 'done',
+    id: number,
+    newText: string,
+    newColumn: 'todo' | 'doing' | 'done',
+  ) => void;
 }
 
 export const useTaskStore = create<TaskState>((set) => ({
@@ -75,17 +80,40 @@ export const useTaskStore = create<TaskState>((set) => ({
     }));
   },
 
-  editTask: (column, id, newText) => {
-    const editedTask = { id, text: newText, type: column };
-    set((state) => ({
-      tasks: {
-        ...state.tasks,
-        [column]: state.tasks[column].map((task) =>
-          task.id === id ? { ...task, text: newText } : task,
-        ),
-      },
-    }));
+  editTask: (oldColumn, id, newText, newColumn) => {
+    if (oldColumn === newColumn) {
+      set((state) => ({
+        tasks: {
+          ...state.tasks,
+          [oldColumn]: state.tasks[oldColumn].map((task) =>
+            task.id === id ? { ...task, text: newText } : task,
+          ),
+        },
+      }));
+      return;
+    }
 
-    return editedTask;
+    set((state) => {
+      const taskToMove = state.tasks[oldColumn].find((task) => task.id === id);
+
+      if (!taskToMove) return state; // Task not found, return unchanged state
+
+      const updatedTask = { ...taskToMove, text: newText, type: newColumn };
+
+      return {
+        tasks: {
+          ...state.tasks,
+          [oldColumn]: state.tasks[oldColumn].filter((task) => task.id !== id), // Remove from old column
+          [newColumn]: [...state.tasks[newColumn], updatedTask], // Add to new column
+        },
+      };
+    });
+
+    console.log('Task moved:', id, 'from', oldColumn, 'to', newColumn);
+    return {
+      id: id,
+      text: newText,
+      type: newColumn,
+    };
   },
 }));

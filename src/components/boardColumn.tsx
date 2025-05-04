@@ -1,14 +1,8 @@
 import { TaskCard } from '@/components/taskCard';
+import { useCreateTask } from '@/mutations/useCreateTask';
 import { useEditTask } from '@/mutations/useEditTask';
 import { useTaskStore } from '@/store/useTask';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-
-interface Task {
-  id: number;
-  text: string;
-  type: 'todo' | 'doing' | 'done';
-}
 
 export function BoardColumn({
   title,
@@ -17,24 +11,26 @@ export function BoardColumn({
   title: string;
   column: 'todo' | 'doing' | 'done';
 }) {
-  const { tasks, addTask, deleteTask } = useTaskStore();
+  const { tasks, addTask, editTask } = useTaskStore();
   const [isAdding, setIsAdding] = useState(false);
   const [newTaskText, setNewTaskText] = useState('');
   const editMutation = useEditTask();
-
-  console.log(tasks);
+  const mutation = useCreateTask();
 
   const handleAddTask = () => {
     if (newTaskText.trim() !== '') {
       const newTask = addTask(column, newTaskText);
       // here I will implement the logic to add the task to the database
       console.log('New task:', newTask);
-      mutation.mutate(newTask);
+      if (typeof newTask === 'object' && newTask !== null) {
+        mutation.mutate(newTask);
+      }
       setNewTaskText(''); // Reset input field
       setIsAdding(false); // Hide input
     }
   };
 
+  // Drag and Drop API for moving tasks between columns automatically when dragged uses drag overlay
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
 
@@ -42,48 +38,41 @@ export function BoardColumn({
     const taskData = JSON.parse(e.dataTransfer.getData('text/plain')) as {
       id: string;
       text: string;
-      column: string;
     };
 
-    if (['todo', 'doing', 'done'].includes(taskData.column)) {
-      const typedColumn = taskData.column as 'todo' | 'doing' | 'done';
+    // current task has task object having 3 arrays
+    // 🛠️ Get the latest column dynamically from the Zustand store
+    const currentTasks = useTaskStore.getState().tasks;
+    let oldColumn: 'todo' | 'doing' | 'done' | null = null;
 
-      if (typedColumn !== column) {
-        console.log('Deleting task1111111111111:', taskData);
-        deleteTask(typedColumn, Number(taskData?.id));
-        const newTask: Task = {
-          id: Number(taskData?.id), // Use the existing task's ID
-          text: taskData.text,
-          type: column,
-        };
-        addTask(column, newTask.text);
-        console.log('New task:', newTask);
+    for (const col of ['todo', 'doing', 'done'] as const) {
+      if (currentTasks[col].some((task) => task.id === Number(taskData.id))) {
+        oldColumn = col;
+        break;
+      }
+    }
 
-        if (typeof newTask === 'object' && newTask !== null) {
-          editMutation.mutate(newTask);
-        }
-      } // ✅ Closing brace added here
+    if (!oldColumn) {
+      console.error('Task not found in any column');
+      return;
+    }
+
+    const newColumn = column;
+
+    if (oldColumn !== newColumn) {
+      console.log(`Moving task from ${oldColumn} to ${newColumn}`);
+
+      // Edit task and move it to new column
+      const editedTask = editTask(oldColumn, Number(taskData.id), taskData.text, newColumn);
+
+      if (typeof editedTask === 'object' && editedTask !== null) {
+        console.log('Updating database...');
+        editMutation.mutate(editedTask);
+      }
     } else {
-      console.error('Invalid column type:', taskData.column);
+      alert('Task cannot be moved to the same column');
     }
   };
-
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: async (task) => {
-      const response = await fetch('http://localhost:5000/api/tasks/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task),
-      });
-      if (!response.ok) throw new Error('Failed to add task');
-      return response.json();
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] }); // Refetch tasks from API
-    },
-  });
 
   return (
     <div
@@ -106,8 +95,8 @@ export function BoardColumn({
 
       {/* Task List */}
       <div className="space-y-2">
-        {tasks[column].map((task) => (
-          <TaskCard key={task.id} text={task.text} id={task.id} column={'todo'} />
+        {tasks[column].map((task, index) => (
+          <TaskCard key={`${task.id}-${index}`} text={task.text} id={task.id} column={'todo'} />
         ))}
       </div>
 
