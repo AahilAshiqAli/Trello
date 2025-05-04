@@ -28,5 +28,3 @@ build
 .env
 .env.*
 
-# Tanstack Router codegen
-src/routeTree.gen.ts
